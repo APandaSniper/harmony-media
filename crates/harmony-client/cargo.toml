@@ -1,0 +1,25 @@
+[package]
+name = "harmony-client"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+harmony-core = { path = "../harmony-core" }
+dioxus = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { version = "0.12", default-features = false }
+
+# Web (WASM)
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+dioxus-web = "0.6"
+reqwest = { version = "0.12", default-features = false, features = ["json"] }
+
+# Desktop (Windows, macOS, Linux)
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+dioxus-desktop = "0.6"
+reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
+tokio = { workspace = true, features = ["rt", "macros"] }
+
+# Note: Add mobile support later when needed
+# See: https://dioxuslabs.com/learn/0.6/guides/mobile

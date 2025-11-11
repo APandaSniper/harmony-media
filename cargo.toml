@@ -1,0 +1,58 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/harmony-core",
+    "crates/harmony-server",
+    "crates/harmony-client",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+[workspace.dependencies]
+# Async runtime - platform-specific features handled per-crate
+tokio = { version = "1", features = ["full"] }
+
+# Time and data management 
+chrono = { version = "0.4", features = ["serde"] }
+
+# Serialization - works everywhere
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# UUID - add js feature for WASM, works on native too
+uuid = { version = "1.10", features = ["serde", "v4", "js"] }
+
+# Error handling - works everywhere
+anyhow = "1"
+thiserror = "1"
+async-trait = "0.1"
+
+# ECS - works everywhere
+hecs = "0.10"
+
+# Server-only (harmony-server won't compile to WASM anyway)
+axum = { version = "0.7", features = ["ws", "macros"] }
+tower-http = { version = "0.6", features = ["cors"] }
+rspotify = {version = "0.13"}
+tracing = "0.1"
+tracing-subscriber = "0.3"
+rand = "0.8"
+
+# Client - Dioxus handles platform differences
+dioxus = "0.6"
+
+reqwest = { version = "0.12", default-features = false, features = ["json"] }
+
+[profile]
+
+[profile.wasm-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.server-dev]
+inherits = "dev"
+
+[profile.android-dev]
+inherits = "dev"

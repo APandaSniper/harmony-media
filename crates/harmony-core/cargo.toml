@@ -1,0 +1,12 @@
+[package]
+name = "harmony-core"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }  # Already has 'js' feature
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+chrono = { workspace = true }
