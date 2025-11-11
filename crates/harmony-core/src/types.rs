@@ -1,6 +1,14 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+/// Spotify authentication state
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpotifyAuthState{
+    pub access_token: String,
+    pub refresh_token: Option<String>,
+    pub expires_at: i64, // Unix timestamp
+}
+
 /// Universal track identifier
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct TrackId(pub Uuid);
