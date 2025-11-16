@@ -96,3 +96,13 @@ impl Track{
         }
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Playlist{
+    pub id: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub image_url: Option<String>,
+    pub track_count: u32,
+    pub owner: String,
+}

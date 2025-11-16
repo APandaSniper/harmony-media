@@ -1,36 +1,59 @@
 use anyhow::{anyhow, Ok, Result};
 use chrono::NaiveDate;
-use harmony_core::types::Track;
+use harmony_core::types::{Track, Playlist};
 use rand::seq::SliceRandom;
 use rspotify::{
-    model::{SearchType, TrackId as SpotifyTrackId},
-    prelude::*,
-    ClientCredsSpotify, Credentials,
+    AuthCodePkceSpotify, ClientError, Credentials, OAuth, model::{PlaylistId, SimplifiedPlaylist}, prelude::*, scopes
 };
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 /// Spotify service for interacting with Spotify API
 pub struct SpotifyService {
-    client: ClientCredsSpotify,
+    client: Arc<RwLock<AuthCodePkceSpotify>>,
 }
 
 impl SpotifyService {
     /// Creates a new Spotify service
     pub async fn new() -> Result<Self> {
-        tracing::info!("Creating a new Spotify service");
+        tracing::info!("Creating a new Spotify service with PKCE authentication");
 
-        // Load credentials
-        let creds = Credentials::from_env()
-            .ok_or_else(|| anyhow::anyhow!("Missing Spotify credentials"))?;
+        let client_id = std::env::var("RSPOTIFY_CLIENT_ID")
+            .map_err(|_| anyhow!("RSPOTIFY_CLIENT_ID was not set in the environment"))?;
 
-        // Create client
-        let client = ClientCredsSpotify::new(creds);
+        let redirect_uri = std::env::var("RSPOTIFY_REDIRECT_URI").map_err(|_| anyhow!("RSPOTIFY_REDIRECT_URI was not set in the environment"))?;
 
-        // Request access token
-        client.request_token().await?;
+        // Create credentials without secret
+        let creds = Credentials::new_pkce(&client_id);
 
-        tracing::info!("Spotify client initialization success");
+        // Setup OAuth config with requires scopes
+        let oauth = OAuth{
+            redirect_uri,
+            scopes: scopes!(
+                "playlist-read-private",
+                "playlist-read-collaborative"
+            ),
+            ..Default::default()
+        };
 
-        Ok(Self { client })
+        let client = AuthCodePkceSpotify::new(creds, oauth);
+
+        tracing::info!("Spotify PKCE client created successfully");
+
+        Ok(Self { 
+            client: Arc::new(RwLock::new(client)) 
+        })
+    }
+
+    /// Get the authorization URL for the user to visit
+    pub async fn get_auth_url(&self) -> Result<String>{
+        let mut client = self.client.write().await;
+        let url = client
+            .get_authorize_url(None)
+            .map_err(|e| anyhow!("Failed to generate auth URL: {}", e))?;
+
+        tracing::info!("Generated auth URL");
+        Ok(url)
     }
 
     /// Convert Spotify full_track to Harmony_track type
