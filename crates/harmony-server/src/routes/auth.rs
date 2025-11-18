@@ -33,6 +33,12 @@ pub struct StatusResponse {
     pub authenticated: bool,
 }
 
+/// Client URL helper function
+fn get_client_url() -> String{
+    std::env::var("CLIENT_URL")
+        .unwrap_or_else(|_| "http://localhost:8080".to_string())
+}
+
 /// Initiate Spotify login
 pub async fn login(
     State(state): State<AppState>,
@@ -40,8 +46,9 @@ pub async fn login(
     // Check if already authenticated
     if state.spotify.is_authenticated().await {
         tracing::info!("Already authenticated, redirecting to dashboard");
+        let client_url = get_client_url();
         // Redirect to client dashboard (adjust port as needed)
-        return Ok(Redirect::to("http://localhost:3000"));
+        return Ok(Redirect::to(&client_url));
     }
 
     let auth_url = state
@@ -79,8 +86,9 @@ pub async fn callback(
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    // Redirect to client app (adjust URL as needed)
-    Ok(Redirect::to("http://localhost:3000"))
+    // Redirect to client app
+    let client_url = get_client_url();
+    Ok(Redirect::to(&client_url))
 }
 
 /// Check authentication status

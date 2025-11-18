@@ -82,8 +82,22 @@ async fn login() {
     }
 }
 
+fn get_api_url() -> String {
+    #[cfg(target_arch = "wasm32")]
+    {
+        // In browser, could read from window.location or config
+        "http://localhost:3000".to_string()
+    }
+    
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::env::var("API_URL")
+            .unwrap_or_else(|_| "http://localhost:3000".to_string())
+    }
+}
+
 async fn check_auth_status(mut auth_status: Signal<bool>, mut response_text: Signal<String>) {
-    let url = format!("{}/auth/status", API_URL);
+    let url = format!("{}/auth/status", get_api_url());
     
     match reqwest::get(&url).await {
         Ok(response) => {

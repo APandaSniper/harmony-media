@@ -16,6 +16,14 @@ async fn main() {
     // Load .env file FIRST, before tracing
     dotenvy::dotenv().ok();
 
+    // Get configuration from environment
+    let host = std::env::var("SERVER_HOST")
+        .unwrap_or_else(|_| "127.0.0.1".to_string());
+    let port = std::env::var("SERVER_PORT")
+        .unwrap_or_else(|_| "3000".to_string())
+        .parse::<u16>()
+        .expect("SERVER_PORT must be a valid number");
+
     // Initialize Spotify service
     let spotify = match SpotifyService::new().await {
         Ok(service) => {
@@ -54,7 +62,10 @@ async fn main() {
         .with_state(state);
 
     // Run the server
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = format!("{}:{}", host, port)
+        .parse::<SocketAddr>()
+        .expect("Invalid address format");
+    
     tracing::info!("Server listening on {}", addr);
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
