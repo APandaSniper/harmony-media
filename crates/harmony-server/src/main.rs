@@ -1,12 +1,21 @@
 mod services;
 mod routes;
 
-use axum::{routing::get, Router};
+use axum::{routing::get, Router, Json};
 use routes::auth::{AppState, callback, login, status};
 use services::SpotifyService;
 use std::{net::SocketAddr, sync::Arc};
 use tower_http::cors::{CorsLayer, AllowOrigin, Any};
 //use http::header::{AUTHORIZATION, CONTENT_TYPE};
+
+// Add this function before main()
+async fn health_check() -> Json<serde_json::Value> {
+    Json(serde_json::json!({
+        "status": "healthy",
+        "service": "harmony-media-server",
+        "timestamp": chrono::Utc::now().to_rfc3339()
+    }))
+}
 
 #[tokio::main]
 async fn main() {
@@ -55,6 +64,7 @@ async fn main() {
     // Build our application with routes
     let app = Router::new()
         .route("/", get(|| async { "Harmony Media Server" }))
+        .route("/health", get(health_check))
         .route("/auth/login", get(login))
         .route("/auth/callback", get(callback))
         .route("/auth/status", get(status))
@@ -65,7 +75,7 @@ async fn main() {
     let addr = format!("{}:{}", host, port)
         .parse::<SocketAddr>()
         .expect("Invalid address format");
-    
+
     tracing::info!("Server listening on {}", addr);
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();

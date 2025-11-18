@@ -1,6 +1,11 @@
-use dioxus::prelude::*;
+// Declare modules
+mod api;
+mod components;
+mod config;
+mod error;
+mod utils;
 
-const API_URL: &str = "http://localhost:3000";
+use dioxus::prelude::*;
 
 fn main() {
     dioxus::launch(App);
@@ -14,7 +19,7 @@ fn App() -> Element {
     // Check auth status on mount
     use_effect(move || {
         spawn(async move {
-            check_auth_status(auth_status, response_text).await;
+            api::auth::check_auth_status(auth_status, response_text).await;
         });
     });
 
@@ -28,7 +33,7 @@ fn App() -> Element {
                 button { 
                     onclick: move |_| {
                         spawn(async move {
-                            login().await;
+                            api::auth::login().await;
                         });
                     },
                     "Login with Spotify" 
@@ -36,7 +41,7 @@ fn App() -> Element {
                 button { 
                     onclick: move |_| {
                         spawn(async move {
-                            check_auth_status(auth_status, response_text).await;
+                            api::auth::check_auth_status(auth_status, response_text).await;
                         });
                     },
                     "Check Auth Status" 
@@ -61,58 +66,6 @@ fn App() -> Element {
                     "{response_text}"
                 }
             }
-        }
-    }
-}
-
-async fn login() {
-    let url = format!("{}/auth/login", API_URL);
-    
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        let _ = webbrowser::open(&url);
-    }
-    
-    #[cfg(target_arch = "wasm32")]
-    {
-        // In browser, navigate to the auth URL
-        if let Some(window) = web_sys::window() {
-            let _ = window.location().set_href(&url);
-        }
-    }
-}
-
-fn get_api_url() -> String {
-    #[cfg(target_arch = "wasm32")]
-    {
-        // In browser, could read from window.location or config
-        "http://localhost:3000".to_string()
-    }
-    
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        std::env::var("API_URL")
-            .unwrap_or_else(|_| "http://localhost:3000".to_string())
-    }
-}
-
-async fn check_auth_status(mut auth_status: Signal<bool>, mut response_text: Signal<String>) {
-    let url = format!("{}/auth/status", get_api_url());
-    
-    match reqwest::get(&url).await {
-        Ok(response) => {
-            match response.json::<serde_json::Value>().await {
-                Ok(data) => {
-                    auth_status.set(data["authenticated"].as_bool().unwrap_or(false));
-                    response_text.set(serde_json::to_string_pretty(&data).unwrap_or_default());
-                }
-                Err(e) => {
-                    response_text.set(format!("Error parsing response: {}", e));
-                }
-            }
-        }
-        Err(e) => {
-            response_text.set(format!("Error: {}", e));
         }
     }
 }
