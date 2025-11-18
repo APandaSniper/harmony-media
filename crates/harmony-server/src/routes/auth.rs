@@ -36,14 +36,21 @@ pub struct StatusResponse {
 /// Initiate Spotify login
 pub async fn login(
     State(state): State<AppState>,
-) -> Result<Json<LoginResponse>, (StatusCode, String)> {
+) -> Result<Redirect, (StatusCode, String)> {
+    // Check if already authenticated
+    if state.spotify.is_authenticated().await {
+        tracing::info!("Already authenticated, redirecting to dashboard");
+        // Redirect to client dashboard (adjust port as needed)
+        return Ok(Redirect::to("http://localhost:3000"));
+    }
+
     let auth_url = state
         .spotify
         .get_auth_url()
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    Ok(Json(LoginResponse { auth_url }))
+    Ok(Redirect::to(&auth_url))
 }
 
 /// Handle Spotify OAuth callback
@@ -85,7 +92,7 @@ pub async fn status(
 }
 
 /// Test authentication API endpoint
-pub async fn test_api(
+ pub async fn test_api(
     State(state): State<AppState>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)>{
     // Check if authenticated
@@ -96,7 +103,7 @@ pub async fn test_api(
         ));
     }
 
-    Ok(Json(serde_json::Json!({
+    Ok(Json(serde_json::json!({
         "message": "Authentication is working!",
         "authenticated": true
     })))

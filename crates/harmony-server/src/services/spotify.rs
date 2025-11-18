@@ -5,12 +5,14 @@ use rand::seq::SliceRandom;
 use rspotify::{
     AuthCodePkceSpotify, ClientError, Credentials, OAuth, model::{PlaylistId, SimplifiedPlaylist}, prelude::*, scopes
 };
-use std::sync::Arc;
+use std::{fs, sync::Arc};
 use tokio::sync::RwLock;
 
 /// Spotify service for interacting with Spotify API
 pub struct SpotifyService {
     client: Arc<RwLock<AuthCodePkceSpotify>>,
+    //verifier: Arc<RwLock<Option<String>>>,
+    cache_path: std::path::PathBuf,
 }
 
 impl SpotifyService {
@@ -36,18 +38,45 @@ impl SpotifyService {
             ..Default::default()
         };
 
-        let client = AuthCodePkceSpotify::new(creds, oauth);
+        let mut client = AuthCodePkceSpotify::new(creds, oauth);
+
+        let cache_path = std::path::PathBuf::from(".spotify_token_cache.json");
+
+        // Try to load existing token
+        if cache_path.exists() {
+            if let Result::Ok(token_json) = std::fs::read_to_string(&cache_path) {
+                if let Result::Ok(token) = serde_json::from_str(&token_json) {
+                    *client.token.lock().await.unwrap() = Some(token);
+                    tracing::info!("Loaded cached Spotify token");
+                }
+            }
+        }
 
         tracing::info!("Spotify PKCE client created successfully");
 
         Ok(Self { 
-            client: Arc::new(RwLock::new(client)) 
+            client: Arc::new(RwLock::new(client)),
+            //verifier: Arc::new(RwLock::new(None)),
+            cache_path,
         })
+    }
+
+    /// Save the current token to cache file
+    async fn save_token(&self) -> Result<()>{
+        let client = self.client.read().await;
+
+        if let Some(token) = client.token.lock().await.unwrap().as_ref(){
+            let token_json = serde_json::to_string_pretty(token)?;
+            std::fs::write(&self.cache_path, token_json)?;
+            tracing::info!("Saved token to cache");
+        }
+        Ok(())
     }
 
     /// Get the authorization URL for the user to visit
     pub async fn get_auth_url(&self) -> Result<String>{
         let mut client = self.client.write().await;
+
         let url = client
             .get_authorize_url(None)
             .map_err(|e| anyhow!("Failed to generate auth URL: {}", e))?;
@@ -58,14 +87,28 @@ impl SpotifyService {
 
     /// Exchange authorization code for the access token
     pub async fn authenticate(&self, code: &str) -> Result<()> {
-        let mut client = self.client.write().await;
-
-        
+        let client = self.client.write().await;
 
         client.request_token(code).await.map_err(|e| anyhow!("Failed to exchange code for token: {}", e))?;
 
         tracing::info!("Successfully authenticated with Spotify");
+
+        drop(client);
+        self.save_token().await?;
+
         Ok(())
+    }
+
+    /// Check if the client is already authenticated
+    pub async fn is_authenticated(&self) -> bool{
+        let client = self.client.read().await;
+
+        //Checking for token
+        if let Some(token) = client.get_token().lock().await.unwrap().as_ref() {
+            !token.is_expired()
+        } else {
+            false
+        }
     }
 
     /// Convert Spotify full_track to Harmony_track type

@@ -5,19 +5,22 @@ edition.workspace = true
 
 [dependencies]
 harmony-core = { path = "../harmony-core" }
-dioxus = { workspace = true }
+dioxus = { workspace = true, features = ["desktop"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 reqwest = { version = "0.12", default-features = false }
+webbrowser = "1.0"
 
 # Web (WASM)
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-dioxus-web = "0.6"
+dioxus-web = "0.7.1"
 reqwest = { version = "0.12", default-features = false, features = ["json"] }
+web-sys = { version = "0.3", features = ["Window", "Location"] }
+getrandom = { workspace = true }
 
 # Desktop (Windows, macOS, Linux)
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-dioxus-desktop = "0.6"
+dioxus-desktop = "0.7.1"
 reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
 tokio = { workspace = true, features = ["rt", "macros"] }
 

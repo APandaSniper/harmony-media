@@ -23,6 +23,7 @@ serde_json = "1"
 
 # UUID - add js feature for WASM, works on native too
 uuid = { version = "1.10", features = ["serde", "v4", "js"] }
+getrandom = { version = "0.2", features = ["js"] }
 
 # Error handling - works everywhere
 anyhow = "1"
@@ -41,7 +42,7 @@ tracing-subscriber = "0.3"
 rand = "0.8"
 
 # Client - Dioxus handles platform differences
-dioxus = "0.6"
+dioxus = "0.7.1"
 
 reqwest = { version = "0.12", default-features = false, features = ["json"] }
 

@@ -10,3 +10,4 @@ uuid = { workspace = true }  # Already has 'js' feature
 anyhow = { workspace = true }
 async-trait = { workspace = true }
 chrono = { workspace = true }
+getrandom = { workspace = true }

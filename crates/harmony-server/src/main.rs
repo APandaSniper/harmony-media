@@ -23,11 +23,13 @@ async fn main() {
         Err(e) => {
             tracing::error!("Failed to initialize Spotify : {}", e);
             tracing::error!(
-                "Make sure SPOTIFY_CLIENT_ID is set in .env"
+                "Make sure RSPOTIFY_CLIENT_ID is set in .env"
             );
             return;
         }
     };
+
+    let state = AppState { spotify, };
 
     // Build our application with routes
     let app = Router::new()
