@@ -3,11 +3,7 @@ use dioxus::prelude::*;
 const API_URL: &str = "http://localhost:3000";
 
 fn main() {
-    #[cfg(not(target_arch = "wasm32"))]
     dioxus::launch(App);
-    
-    #[cfg(target_arch = "wasm32")]
-    dioxus::web::launch(App);  // Use web launcher for WASM
 }
 
 #[component]

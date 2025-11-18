@@ -5,24 +5,20 @@ edition.workspace = true
 
 [dependencies]
 harmony-core = { path = "../harmony-core" }
-dioxus = { workspace = true, features = ["desktop"] }
+dioxus = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-reqwest = { version = "0.12", default-features = false }
-webbrowser = "1.0"
 
-# Web (WASM)
+# Web (WASM) - NO native-tls or openssl!
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-dioxus-web = "0.7.1"
-reqwest = { version = "0.12", default-features = false, features = ["json"] }
+dioxus-web = "0.6"
+reqwest = { version = "0.12", default-features = false, features = ["json"] }  # No TLS features at all for WASM
 web-sys = { version = "0.3", features = ["Window", "Location"] }
 getrandom = { workspace = true }
 
-# Desktop (Windows, macOS, Linux)
+# Desktop
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-dioxus-desktop = "0.7.1"
-reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
+dioxus-desktop = "0.6"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }  # Use rustls, not native-tls
 tokio = { workspace = true, features = ["rt", "macros"] }
-
-# Note: Add mobile support later when needed
-# See: https://dioxuslabs.com/learn/0.6/guides/mobile
+webbrowser = "1.0"
