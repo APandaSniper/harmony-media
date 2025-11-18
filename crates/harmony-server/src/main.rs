@@ -5,6 +5,8 @@ use axum::{routing::get, Router};
 use routes::auth::{AppState, callback, login, status};
 use services::SpotifyService;
 use std::{net::SocketAddr, sync::Arc};
+use tower_http::cors::{CorsLayer, AllowOrigin, Any};
+//use http::header::{AUTHORIZATION, CONTENT_TYPE};
 
 #[tokio::main]
 async fn main() {
@@ -31,12 +33,24 @@ async fn main() {
 
     let state = AppState { spotify, };
 
+    let cors = CorsLayer::new()
+        .allow_origin(Any)  // For development - allows any origin
+        .allow_methods(Any)  // GET, POST, etc.
+        .allow_headers(Any); // Any headers
+
+    // Uncomment for production
+    /*let cors = CorsLayer::new()
+        .allow_origin("https://yourdomain.com".parse::<HeaderValue>().unwrap())
+        .allow_methods([Method::GET, Method::POST])
+        .allow_headers([AUTHORIZATION, CONTENT_TYPE]);*/
+
     // Build our application with routes
     let app = Router::new()
         .route("/", get(|| async { "Harmony Media Server" }))
         .route("/auth/login", get(login))
         .route("/auth/callback", get(callback))
         .route("/auth/status", get(status))
+        .layer(cors)
         .with_state(state);
 
     // Run the server
