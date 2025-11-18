@@ -11,14 +11,14 @@ serde_json = { workspace = true }
 
 # Web (WASM) - NO native-tls or openssl!
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-dioxus-web = "0.6"
+dioxus-web = "0.7.1"
 reqwest = { version = "0.12", default-features = false, features = ["json"] }  # No TLS features at all for WASM
 web-sys = { version = "0.3", features = ["Window", "Location"] }
 getrandom = { workspace = true }
 
 # Desktop
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-dioxus-desktop = "0.6"
+dioxus-desktop = "0.7.1"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }  # Use rustls, not native-tls
 tokio = { workspace = true, features = ["rt", "macros"] }
 webbrowser = "1.0"
