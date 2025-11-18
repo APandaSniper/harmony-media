@@ -55,11 +55,12 @@ async fn main() {
         .allow_methods(Any)  // GET, POST, etc.
         .allow_headers(Any); // Any headers
 
-    // Uncomment for production
-    /*let cors = CorsLayer::new()
+    /* Uncomment for production
+    let cors = CorsLayer::new()
         .allow_origin("https://yourdomain.com".parse::<HeaderValue>().unwrap())
         .allow_methods([Method::GET, Method::POST])
-        .allow_headers([AUTHORIZATION, CONTENT_TYPE]);*/
+        .allow_headers([AUTHORIZATION, CONTENT_TYPE]);
+    */
 
     // Build our application with routes
     let app = Router::new()
