@@ -56,6 +56,18 @@ impl SpotifyService {
         Ok(url)
     }
 
+    /// Exchange authorization code for the access token
+    pub async fn authenticate(&self, code: &str) -> Result<()> {
+        let mut client = self.client.write().await;
+
+        
+
+        client.request_token(code).await.map_err(|e| anyhow!("Failed to exchange code for token: {}", e))?;
+
+        tracing::info!("Successfully authenticated with Spotify");
+        Ok(())
+    }
+
     /// Convert Spotify full_track to Harmony_track type
     fn convert_track(&self, track: &rspotify::model::FullTrack) -> Option<Track> {
         Some(Track {
