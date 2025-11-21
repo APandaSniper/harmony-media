@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Ok, Result};
 use chrono::NaiveDate;
-use harmony_core::types::{Track, Playlist};
+use harmony_core::types::{HarmonyTrack, HarmonyPlaylist};
 use rand::seq::SliceRandom;
 use rspotify::{
     AuthCodePkceSpotify, ClientError, Credentials, OAuth, model::{PlaylistId, SimplifiedPlaylist}, prelude::*, scopes
@@ -113,7 +113,7 @@ impl SpotifyService {
     }
 
     /// Get specific Spotify playlist
-    pub async fn get_user_playlists(&self) -> Result<Vec<Playlist>>{
+    pub async fn get_user_playlists(&self) -> Result<Vec<HarmonyPlaylist>>{
         let client = self.client.read().await;
 
         let playlists: Vec<rspotify::model::SimplifiedPlaylist> = client
@@ -124,13 +124,14 @@ impl SpotifyService {
 
         Ok(playlists
             .iter()
-            .map(|p| self.convert_track(p))
+            .map(|p| self.convert_playlist(p))
             .collect()
         )
     }
 
-    fn convert_playlist(&self, playlist: &rspotify::model::SimplifiedPlaylist) -> Playlist {
-        Playlist {
+    /// Convert Spotify SimplifiedPlaylist to 
+    fn convert_playlist(&self, playlist: &rspotify::model::SimplifiedPlaylist) -> Option<HarmonyPlaylist> {
+        Some(HarmonyPlaylist {
             id: playlist.id.to_string(),
             name: playlist.name.clone(),
             description: None,
@@ -139,12 +140,12 @@ impl SpotifyService {
             owner: playlist.owner.display_name
                 .clone()
                 .unwrap_or_else(|| "Unknown".to_string()),
-        }
+        })
     }
 
     /// Convert Spotify full_track to Harmony_track type
-    fn convert_track(&self, track: &rspotify::model::FullTrack) -> Option<Track> {
-        Some(Track {
+    fn convert_track(&self, track: &rspotify::model::FullTrack) -> Option<HarmonyTrack> {
+        Some(HarmonyTrack {
             // Generate new Harmony ID
             harmony_id: harmony_core::types::TrackId::new(),
 

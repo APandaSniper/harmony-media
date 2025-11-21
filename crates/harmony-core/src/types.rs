@@ -36,7 +36,7 @@ impl std::fmt::Display for TrackId {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Track {
+pub struct HarmonyTrack {
     /// Internal Harmony Track Id
     pub harmony_id: TrackId,
 
@@ -77,7 +77,7 @@ pub struct Track {
     pub tags: Option<Vec<String>>,
 }
 
-impl Track{
+impl HarmonyTrack{
     pub fn minimal(title: impl Into<String>, artist: impl Into<String>) -> Self {
         Self{
             harmony_id: TrackId::new(),
@@ -98,7 +98,7 @@ impl Track{
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Playlist{
+pub struct HarmonyPlaylist{
     pub id: String,
     pub name: String,
     pub description: Option<String>,

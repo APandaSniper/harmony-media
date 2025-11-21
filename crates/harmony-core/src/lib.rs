@@ -1,4 +1,4 @@
 pub mod types;
 
 // Re-export commonly used types
-pub use types::{Track, TrackId};
+pub use types::{HarmonyTrack, TrackId, HarmonyPlaylist};
