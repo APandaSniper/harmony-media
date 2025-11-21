@@ -7,6 +7,7 @@ use rspotify::{
 };
 use std::{fs, sync::Arc};
 use tokio::sync::RwLock;
+use futures::stream::{StreamExt, TryStreamExt};
 
 /// Spotify service for interacting with Spotify API
 pub struct SpotifyService {
@@ -108,6 +109,36 @@ impl SpotifyService {
             !token.is_expired()
         } else {
             false
+        }
+    }
+
+    /// Get specific Spotify playlist
+    pub async fn get_user_playlists(&self) -> Result<Vec<Playlist>>{
+        let client = self.client.read().await;
+
+        let playlists: Vec<rspotify::model::SimplifiedPlaylist> = client
+            .current_user_playlists()
+            .try_collect()
+            .await
+            .map_err(|e| anyhow!("Failed to fetch playlists: {}", e))?;
+
+        Ok(playlists
+            .iter()
+            .map(|p| self.convert_track(p))
+            .collect()
+        )
+    }
+
+    fn convert_playlist(&self, playlist: &rspotify::model::SimplifiedPlaylist) -> Playlist {
+        Playlist {
+            id: playlist.id.to_string(),
+            name: playlist.name.clone(),
+            description: None,
+            image_url: playlist.images.first().map(|img| img.url.clone()),
+            track_count: playlist.tracks.total,
+            owner: playlist.owner.display_name
+                .clone()
+                .unwrap_or_else(|| "Unknown".to_string()),
         }
     }
 

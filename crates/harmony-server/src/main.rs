@@ -8,7 +8,6 @@ use std::{net::SocketAddr, sync::Arc};
 use tower_http::cors::{CorsLayer, AllowOrigin, Any};
 //use http::header::{AUTHORIZATION, CONTENT_TYPE};
 
-// Add this function before main()
 async fn health_check() -> Json<serde_json::Value> {
     Json(serde_json::json!({
         "status": "healthy",
