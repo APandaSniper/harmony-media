@@ -1,13 +1,15 @@
 use anyhow::{anyhow, Ok, Result};
 use chrono::NaiveDate;
-use harmony_core::types::{HarmonyTrack, HarmonyPlaylist};
+use futures::stream::{StreamExt, TryStreamExt};
+use harmony_core::types::{Playlist, Track};
 use rand::seq::SliceRandom;
 use rspotify::{
-    AuthCodePkceSpotify, ClientError, Credentials, OAuth, model::{PlaylistId, SimplifiedPlaylist}, prelude::*, scopes
+    model::{PlaylistId, SimplifiedPlaylist},
+    prelude::*,
+    scopes, AuthCodePkceSpotify, ClientError, Credentials, OAuth,
 };
 use std::{fs, sync::Arc};
 use tokio::sync::RwLock;
-use futures::stream::{StreamExt, TryStreamExt};
 
 /// Spotify service for interacting with Spotify API
 pub struct SpotifyService {
@@ -24,18 +26,16 @@ impl SpotifyService {
         let client_id = std::env::var("RSPOTIFY_CLIENT_ID")
             .map_err(|_| anyhow!("RSPOTIFY_CLIENT_ID was not set in the environment"))?;
 
-        let redirect_uri = std::env::var("RSPOTIFY_REDIRECT_URI").map_err(|_| anyhow!("RSPOTIFY_REDIRECT_URI was not set in the environment"))?;
+        let redirect_uri = std::env::var("RSPOTIFY_REDIRECT_URI")
+            .map_err(|_| anyhow!("RSPOTIFY_REDIRECT_URI was not set in the environment"))?;
 
         // Create credentials without secret
         let creds = Credentials::new_pkce(&client_id);
 
         // Setup OAuth config with requires scopes
-        let oauth = OAuth{
+        let oauth = OAuth {
             redirect_uri,
-            scopes: scopes!(
-                "playlist-read-private",
-                "playlist-read-collaborative"
-            ),
+            scopes: scopes!("playlist-read-private", "playlist-read-collaborative"),
             ..Default::default()
         };
 
@@ -55,7 +55,7 @@ impl SpotifyService {
 
         tracing::info!("Spotify PKCE client created successfully");
 
-        Ok(Self { 
+        Ok(Self {
             client: Arc::new(RwLock::new(client)),
             //verifier: Arc::new(RwLock::new(None)),
             cache_path,
@@ -63,10 +63,10 @@ impl SpotifyService {
     }
 
     /// Save the current token to cache file
-    async fn save_token(&self) -> Result<()>{
+    async fn save_token(&self) -> Result<()> {
         let client = self.client.read().await;
 
-        if let Some(token) = client.token.lock().await.unwrap().as_ref(){
+        if let Some(token) = client.token.lock().await.unwrap().as_ref() {
             let token_json = serde_json::to_string_pretty(token)?;
             std::fs::write(&self.cache_path, token_json)?;
             tracing::info!("Saved token to cache");
@@ -75,7 +75,7 @@ impl SpotifyService {
     }
 
     /// Get the authorization URL for the user to visit
-    pub async fn get_auth_url(&self) -> Result<String>{
+    pub async fn get_auth_url(&self) -> Result<String> {
         let mut client = self.client.write().await;
 
         let url = client
@@ -90,7 +90,10 @@ impl SpotifyService {
     pub async fn authenticate(&self, code: &str) -> Result<()> {
         let client = self.client.write().await;
 
-        client.request_token(code).await.map_err(|e| anyhow!("Failed to exchange code for token: {}", e))?;
+        client
+            .request_token(code)
+            .await
+            .map_err(|e| anyhow!("Failed to exchange code for token: {}", e))?;
 
         tracing::info!("Successfully authenticated with Spotify");
 
@@ -101,7 +104,7 @@ impl SpotifyService {
     }
 
     /// Check if the client is already authenticated
-    pub async fn is_authenticated(&self) -> bool{
+    pub async fn is_authenticated(&self) -> bool {
         let client = self.client.read().await;
 
         //Checking for token
@@ -112,40 +115,9 @@ impl SpotifyService {
         }
     }
 
-    /// Get specific Spotify playlist
-    pub async fn get_user_playlists(&self) -> Result<Vec<HarmonyPlaylist>>{
-        let client = self.client.read().await;
-
-        let playlists: Vec<rspotify::model::SimplifiedPlaylist> = client
-            .current_user_playlists()
-            .try_collect()
-            .await
-            .map_err(|e| anyhow!("Failed to fetch playlists: {}", e))?;
-
-        Ok(playlists
-            .iter()
-            .map(|p| self.convert_playlist(p))
-            .collect()
-        )
-    }
-
-    /// Convert Spotify SimplifiedPlaylist to 
-    fn convert_playlist(&self, playlist: &rspotify::model::SimplifiedPlaylist) -> Option<HarmonyPlaylist> {
-        Some(HarmonyPlaylist {
-            id: playlist.id.to_string(),
-            name: playlist.name.clone(),
-            description: None,
-            image_url: playlist.images.first().map(|img| img.url.clone()),
-            track_count: playlist.tracks.total,
-            owner: playlist.owner.display_name
-                .clone()
-                .unwrap_or_else(|| "Unknown".to_string()),
-        })
-    }
-
     /// Convert Spotify full_track to Harmony_track type
-    fn convert_track(&self, track: &rspotify::model::FullTrack) -> Option<HarmonyTrack> {
-        Some(HarmonyTrack {
+    fn convert_track(&self, track: &rspotify::model::FullTrack) -> Option<Track> {
+        Some(Track {
             // Generate new Harmony ID
             harmony_id: harmony_core::types::TrackId::new(),
 

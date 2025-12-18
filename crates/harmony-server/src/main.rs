@@ -1,11 +1,11 @@
-mod services;
 mod routes;
+mod services;
 
-use axum::{routing::get, Router, Json};
-use routes::auth::{AppState, callback, login, status};
+use axum::{routing::get, Json, Router};
+use routes::auth::{callback, login, status, AppState};
 use services::SpotifyService;
 use std::{net::SocketAddr, sync::Arc};
-use tower_http::cors::{CorsLayer, AllowOrigin, Any};
+use tower_http::cors::{AllowOrigin, Any, CorsLayer};
 //use http::header::{AUTHORIZATION, CONTENT_TYPE};
 
 async fn health_check() -> Json<serde_json::Value> {
@@ -25,8 +25,7 @@ async fn main() {
     dotenvy::dotenv().ok();
 
     // Get configuration from environment
-    let host = std::env::var("SERVER_HOST")
-        .unwrap_or_else(|_| "127.0.0.1".to_string());
+    let host = std::env::var("SERVER_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
     let port = std::env::var("SERVER_PORT")
         .unwrap_or_else(|_| "3000".to_string())
         .parse::<u16>()
@@ -40,18 +39,16 @@ async fn main() {
         }
         Err(e) => {
             tracing::error!("Failed to initialize Spotify : {}", e);
-            tracing::error!(
-                "Make sure RSPOTIFY_CLIENT_ID is set in .env"
-            );
+            tracing::error!("Make sure RSPOTIFY_CLIENT_ID is set in .env");
             return;
         }
     };
 
-    let state = AppState { spotify, };
+    let state = AppState { spotify };
 
     let cors = CorsLayer::new()
-        .allow_origin(Any)  // For development - allows any origin
-        .allow_methods(Any)  // GET, POST, etc.
+        .allow_origin(Any) // For development - allows any origin
+        .allow_methods(Any) // GET, POST, etc.
         .allow_headers(Any); // Any headers
 
     /* Uncomment for production

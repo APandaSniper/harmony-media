@@ -27,26 +27,26 @@ fn App() -> Element {
         style { {include_str!("../assets/style.css")} }
         div { class: "container",
             h1 { "🎵 Harmony Media Dashboard" }
-            
+
             div { class: "section",
                 h2 { "Authentication" }
-                button { 
+                button {
                     onclick: move |_| {
                         spawn(async move {
                             api::auth::login().await;
                         });
                     },
-                    "Login with Spotify" 
+                    "Login with Spotify"
                 }
-                button { 
+                button {
                     onclick: move |_| {
                         spawn(async move {
                             api::auth::check_auth_status(auth_status, response_text).await;
                         });
                     },
-                    "Check Auth Status" 
+                    "Check Auth Status"
                 }
-                
+
                 div { id: "authStatus",
                     if auth_status() {
                         div { class: "status authenticated",

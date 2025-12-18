@@ -18,18 +18,14 @@ impl ClientError {
         if error.is_connect() {
             ClientError::Connection(
                 "Cannot reach the server. Make sure it's running:\n\
-                 → cargo run -p harmony-server".to_string()
+                 → cargo run -p harmony-server"
+                    .to_string(),
             )
         } else if error.is_timeout() {
             ClientError::Timeout
         } else if error.is_status() {
-            let status = error.status()
-                .map(|s| s.as_u16())
-                .unwrap_or(500);
-            ClientError::ServerError(
-                status,
-                "The server returned an error response".to_string()
-            )
+            let status = error.status().map(|s| s.as_u16()).unwrap_or(500);
+            ClientError::ServerError(status, "The server returned an error response".to_string())
         } else {
             ClientError::Unknown(format!("{}", error))
         }
@@ -41,11 +37,10 @@ impl ClientError {
             ClientError::Connection(msg) => {
                 format!("🔌 Connection Error\n\n{}", msg)
             }
-            ClientError::Timeout => {
-                "⏱️ Request Timeout\n\n\
+            ClientError::Timeout => "⏱️ Request Timeout\n\n\
                  The server took too long to respond.\n\
-                 Please try again.".to_string()
-            }
+                 Please try again."
+                .to_string(),
             ClientError::ServerError(status, msg) => {
                 format!("⚠️ Server Error ({})\n\n{}", status, msg)
             }

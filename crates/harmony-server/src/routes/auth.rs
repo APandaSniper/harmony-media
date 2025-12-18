@@ -34,15 +34,12 @@ pub struct StatusResponse {
 }
 
 /// Client URL helper function
-fn get_client_url() -> String{
-    std::env::var("CLIENT_URL")
-        .unwrap_or_else(|_| "http://localhost:8080".to_string())
+fn get_client_url() -> String {
+    std::env::var("CLIENT_URL").unwrap_or_else(|_| "http://localhost:8080".to_string())
 }
 
 /// Initiate Spotify login
-pub async fn login(
-    State(state): State<AppState>,
-) -> Result<Redirect, (StatusCode, String)> {
+pub async fn login(State(state): State<AppState>) -> Result<Redirect, (StatusCode, String)> {
     // Check if already authenticated
     if state.spotify.is_authenticated().await {
         tracing::info!("Already authenticated, redirecting to dashboard");
@@ -92,19 +89,17 @@ pub async fn callback(
 }
 
 /// Check authentication status
-pub async fn status(
-    State(state): State<AppState>,
-) -> Json<StatusResponse> {
+pub async fn status(State(state): State<AppState>) -> Json<StatusResponse> {
     let authenticated = state.spotify.is_authenticated().await;
     Json(StatusResponse { authenticated })
 }
 
 /// Test authentication API endpoint
- pub async fn test_api(
+pub async fn test_api(
     State(state): State<AppState>,
-) -> Result<Json<serde_json::Value>, (StatusCode, String)>{
+) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
     // Check if authenticated
-    if !state.spotify.is_authenticated().await{
+    if !state.spotify.is_authenticated().await {
         return Err((
             StatusCode::UNAUTHORIZED,
             "Not authenticated with Spotify".to_string(),

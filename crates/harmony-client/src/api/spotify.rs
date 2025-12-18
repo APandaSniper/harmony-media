@@ -12,18 +12,18 @@ use crate::error::ClientError;
 pub async fn get_user_playlists() -> Result<Vec<String>, ClientError> {
     // This will call your server's /spotify/playlists endpoint (to be created)
     let url = format!("{}/spotify/playlists", api_url());
-    
+
     let response = reqwest::get(&url)
         .await
         .map_err(ClientError::from_reqwest)?;
-    
+
     if !response.status().is_success() {
         return Err(ClientError::ServerError(
             response.status().as_u16(),
-            "Failed to fetch playlists".to_string()
+            "Failed to fetch playlists".to_string(),
         ));
     }
-    
+
     // For now, return empty vec - implement when server endpoint exists
     Ok(vec![])
 }
