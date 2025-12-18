@@ -21,6 +21,12 @@ pub struct SpotifyAuthState {
     pub expires_at: i64,
 }
 
+
+// ============================================================================
+// Provider Types
+// ============================================================================
+
+/// Potential types of providers for track information
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Provider {
     SPOTIFY,
@@ -30,7 +36,6 @@ pub enum Provider {
     APPLE,
     TIDAL,
     SOUNDCLOUD,
-    UNKNOWN,
 }
 
 // ============================================================================
@@ -102,12 +107,12 @@ pub struct TrackRef {
     /// - Spotify: Track ID like "3n3Ppam7vgaVa1iaRUc9Lp"
     /// - Local: File path like "/music/song.mp3"
     /// - YouTube: Video ID like "dQw4w9WgXcQ"
-    pub provider_id: String,
+    pub provider_id: Option<String>,
 
     /// Media provider name
     ///
     /// Values: "spotify", "local", "youtube", "apple_music", etc.
-    pub provider: Provider,
+    pub provider: Option<Provider>,
 
     /// Track title/name
     pub name: String,
@@ -116,7 +121,7 @@ pub struct TrackRef {
     ///
     /// Multiple artists are common for collaborations and features.
     /// Order typically reflects primary artist first, then featured artists.
-    pub artists: Vec<String>,
+    pub artists: Option<Vec<String>>,
 
     /// Track duration in milliseconds
     ///
@@ -156,12 +161,12 @@ pub struct Track {
     /// - Spotify: "spotify:track:3n3Ppam7vgaVa1iaRUc9Lp"
     /// - Local: Full file path
     /// - YouTube: Video URL or ID
-    pub provider_id: String,
+    pub provider_id: Option<String>,
 
     /// Media provider name
     ///
     /// Values: "spotify", "local", "youtube", "apple_music", "harmony"
-    pub provider: Provider,
+    pub provider: Option<Provider>,
 
     /// Track title
     pub title: String,
@@ -169,7 +174,7 @@ pub struct Track {
     /// List of artist names
     ///
     /// Ordered from primary artist to featured/collaborating artists
-    pub artist: Vec<String>,
+    pub artist: Option<Vec<String>>,
 
     /// Album name
     ///
@@ -243,13 +248,13 @@ impl Track {
     /// ```
     /// let track = Track::minimal("Bohemian Rhapsody", "Queen");
     /// ```
-    pub fn minimal(title: impl Into<String>, artist: impl Into<String>) -> Self {
+    pub fn minimal(title: impl Into<String>) -> Self {
         Self {
             harmony_id: TrackId::new(),
-            provider_id: String::new(),
-            provider: Provider::UNKNOWN,
+            provider_id: None,
+            provider: None,
             title: title.into(),
-            artist: vec![artist.into()],
+            artist: None,
             album: None,
             duration: 0.0,
             preview_url: None,

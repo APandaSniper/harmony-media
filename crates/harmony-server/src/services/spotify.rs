@@ -122,16 +122,16 @@ impl SpotifyService {
             harmony_id: harmony_core::types::TrackId::new(),
 
             // Spotify track ID (returns None if missing)
-            provider_id: track.id.as_ref()?.to_string(),
+            provider_id: Some(track.id.as_ref()?.to_string()),
 
             // Provider name
-            provider: Provider::SPOTIFY,
+            provider: Some(Provider::SPOTIFY),
 
             // Track title
             title: track.name.clone(),
 
             // Artists - collect all artists into a Vec
-            artist: track.artists.iter().map(|a| a.name.clone()).collect(),
+            artist: Some(track.artists.iter().map(|a| a.name.clone()).collect()),
 
             // Album name
             album: Some(track.album.name.clone()),
