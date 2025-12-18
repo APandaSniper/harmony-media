@@ -21,6 +21,18 @@ pub struct SpotifyAuthState {
     pub expires_at: i64,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum Provider {
+    SPOTIFY,
+    LOCAL,
+    HARMONY,
+    YOUTUBE,
+    APPLE,
+    TIDAL,
+    SOUNDCLOUD,
+    UNKNOWN,
+}
+
 // ============================================================================
 // Track Types
 // ============================================================================
@@ -95,7 +107,7 @@ pub struct TrackRef {
     /// Media provider name
     ///
     /// Values: "spotify", "local", "youtube", "apple_music", etc.
-    pub provider: String,
+    pub provider: Provider,
 
     /// Track title/name
     pub name: String,
@@ -149,7 +161,7 @@ pub struct Track {
     /// Media provider name
     ///
     /// Values: "spotify", "local", "youtube", "apple_music", "harmony"
-    pub provider: String,
+    pub provider: Provider,
 
     /// Track title
     pub title: String,
@@ -235,7 +247,7 @@ impl Track {
         Self {
             harmony_id: TrackId::new(),
             provider_id: String::new(),
-            provider: "unknown".to_string(),
+            provider: Provider::UNKNOWN,
             title: title.into(),
             artist: vec![artist.into()],
             album: None,
@@ -656,7 +668,7 @@ pub struct Playlist {
     /// Provider where this playlist originated
     ///
     /// Values: "harmony", "spotify", "apple_music", "local", etc.
-    pub provider: String,
+    pub provider: Provider,
 
     /// Provider's specific playlist identifier
     ///
@@ -746,7 +758,7 @@ impl Playlist {
     pub fn new_native(name: impl Into<String>, owner: impl Into<String>) -> Self {
         Self {
             harmony_id: PlaylistId::new(),
-            provider: "harmony".to_string(),
+            provider: Provider::HARMONY,
             provider_id: None,
             name: name.into(),
             description: None,
@@ -790,7 +802,7 @@ impl Playlist {
     /// ```
     pub fn needs_sync(&self, max_age_seconds: i64) -> bool {
         // Harmony-native playlists never need syncing
-        if self.provider == "harmony" {
+        if self.provider == Provider::HARMONY {
             return false;
         }
 

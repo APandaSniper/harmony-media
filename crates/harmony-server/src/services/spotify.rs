@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Ok, Result};
 use chrono::NaiveDate;
 use futures::stream::{StreamExt, TryStreamExt};
-use harmony_core::types::{Playlist, Track};
+use harmony_core::types::{Playlist, Track, Provider};
 use rand::seq::SliceRandom;
 use rspotify::{
     model::{PlaylistId, SimplifiedPlaylist},
@@ -125,7 +125,7 @@ impl SpotifyService {
             provider_id: track.id.as_ref()?.to_string(),
 
             // Provider name
-            provider: "spotify".to_string(),
+            provider: Provider::SPOTIFY,
 
             // Track title
             title: track.name.clone(),
