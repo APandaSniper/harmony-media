@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Ok, Result};
 use chrono::NaiveDate;
 use futures::stream::{StreamExt, TryStreamExt};
-use harmony_core::types::{Playlist, Track, Provider};
+use harmony_core::types::{Playlist, Provider, Track};
 use rand::seq::SliceRandom;
 use rspotify::{
     model::{PlaylistId, SimplifiedPlaylist},

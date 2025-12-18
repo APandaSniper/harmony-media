@@ -262,16 +262,16 @@ impl Track {
     }
 
     /// Convert to lightweight track reference
-    /// 
+    ///
     /// Creates a `TrackRef` containing essential display information
     /// without the full metadata. Useful for:
     /// - Adding to playlists after full conversion
     /// - Building play queues from cached tracks
     /// - Displaying track lists efficiently
-    /// 
+    ///
     /// # Returns
     /// `TrackRef` with core track information
-    /// 
+    ///
     /// # Example
     /// ```
     /// let full_track = convert_spotify_track(spotify_track)?;
